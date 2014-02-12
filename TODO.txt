@@ -1,0 +1,13 @@
+* Is it possible to create a ranking provider for group/K.O. systems? If not, make it possible.
+* Create a ranking server that listens on a TCP port and has a nice JSON interface
+* Documentation
+ * Ranking provider stubs
+  * Dumb Ranking Provider (ranks teams by their names) as an example for new developers
+  * Foreign Ranking Provider as an example for a ranking provider that is implemented in e.g. Java or C
+* Different ranking providers
+ * Swiss system
+ * Group/K.O. System
+* Allow removal and correction of games/teams
+* Enable multiple simultaneous connections to the server
+ * This means functions in the server (thus in the ranking providers) have to be thread-safe
+* Announce running servers (Avahi?)
