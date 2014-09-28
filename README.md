@@ -1,25 +1,15 @@
 jugger-ranking
 ==============
 
-A program to rank jugger teams based on the games they played.
+A web application to rank jugger teams based on the games they played.
 At the moment it only has one ranking system (Fred's Completely Fair Jugger
-Ranking) and has no real interface yet.
-It can be used as follows:
+Ranking).
 
-    $ cd backend
-    $ python3
-    >>> import ranking_providers.fcfjr
-    >>> from jugger_types import Team, Game
-    >>> f = ranking_providers.fcfjr.FCFJR()
-    >>> t1 = Team("PaderBears")
-    >>> t2 = Team("Trollfaust")
-    >>> g = Game(t1, t2, 5, 2)
-    >>> f.add_team(t1)
-    >>> f.add_team(t2)
-    >>> f.add_game(g)
-    >>> f.fields()
-    (('Place', 'Team', 'Norm. Circ. Jugg diff.', 'T.B. Jugg diff.'), (2, 30, 2, 2), (False, True, False, False))
-    >>> f.get_ranking()
-    [(1, PaderBears, 0, 0), (2, Trollfaust, 0, 0)]
+The application is implemented on top of the [Django Web Framework](https://www.djangoproject.com/). Implementation and testing is currently done against Django 1.4 and Python 2.7, but should work with any later version as well.
 
-Documentation for the functions is in the code.
+How to install/test
+-------------------
+
+First of all, You will need to create a private settings file named `backend/juggerranking/settings\_private.py`. An example can be found in `backend/juggerranking/settings\_private.py.example`.
+Then You can create/sync the database using `backend/manage.py syncdb`.
+Finally, You can either run Django's built-in webserver by calling `backend/manage.py runserver` or configure Your favorite web server for Django.

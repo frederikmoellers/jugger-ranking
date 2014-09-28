@@ -1,0 +1,17 @@
+{# vim: set filetype=htmldjango: #}
+{% extends "site-base.html" %}
+{% block content %}
+    <p>
+        Please log in.
+    </p>
+    <form method="POST" action="/login">
+        {% csrf_token %}
+        <label for="username">User name:</label>
+        <input type="text" name="username">
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" name="password">
+        <br>
+        <input type="submit">
+    </form>
+{% endblock %}

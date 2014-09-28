@@ -1,8 +1,3 @@
-import functools
-import os
-import subprocess
-import tempfile
-
 class NodeNotFound(Exception):
     """
     This is thrown if a referenced node does not exist in the graph (e.. when
@@ -55,7 +50,7 @@ class Graph:
                 del self._graph[source][target]
                 del self._graph_reverse[target][source]
         elif source in self._graph[target]:
-            total_weight -= self._graph[source][target]
+            total_weight -= self._graph[target][source]
             if total_weight > 0:
                 del self._graph[target][source]
                 del self._graph_reverse[source][target]
@@ -76,30 +71,6 @@ class Graph:
             self._graph[node] = {}
             self._graph_reverse[node] = {}
 
-    def draw(self):
-        """
-        Draws the graph using graphviz and displays it using evince.
-        """
-        def name(node):
-            illegal_chars = "- "
-            return str(node).translate(str.maketrans(illegal_chars, "_" * len(illegal_chars)))
-        dotfile, dotfile_name = tempfile.mkstemp(suffix = ".dot", text = True)
-        dotfile = os.fdopen(dotfile, "w")
-        printd = functools.partial(print, file = dotfile)
-        printd("digraph " + str(id(self)) + " {")
-        for node, edges in self._graph.items():
-            printd("    " + name(node) + ";")
-            for succ, weight in edges.items():
-                printd("        " + name(node) + " -> " + name(succ) + " [ label = \"" + str(weight) + "\" ];")
-        printd("}")
-        dotfile.close()
-        psfile, psfile_name = tempfile.mkstemp(suffix = ".ps")
-        os.close(psfile)
-        subprocess.check_call(["dot", "-Tps", "-o" + psfile_name, dotfile_name])
-        os.remove(dotfile_name)
-        subprocess.call(["evince", psfile_name])
-        os.remove(psfile_name)
-
     def find_circles(self):
         circles = set()
         index = {}
@@ -107,15 +78,15 @@ class Graph:
         current_index = 0
         stack = []
 
-        def strongconnect(node):
-            nonlocal circles, index, lowlink, current_index, stack
+        def strongconnect(circles, index, lowlink, current_index, stack, node):
+            #nonlocal circles, index, lowlink, current_index, stack
             index[node] = current_index
             lowlink[node] = current_index
             current_index += 1
             stack.append(node)
             for succ in self._graph[node]:
                 if succ not in index:
-                    strongconnect(succ)
+                    circles, index, lowlink, current_index, stack = strongconnect(circles, index, lowlink, current_index, stack, succ)
                     lowlink[node] = min(lowlink[node], lowlink[succ])
                 elif succ in stack:
                     lowlink[node] = min(lowlink[node], index[succ])
@@ -126,10 +97,11 @@ class Graph:
                     member = stack.pop()
                     circle.add(member)
                 circles.add(frozenset(circle))
+            return circles, index, lowlink, current_index, stack
 
         for node in self._graph:
             if node not in index:
-                strongconnect(node)
+                circles, index, lowlink, current_index, stack = strongconnect(circles, index, lowlink, current_index, stack, node)
         return circles
 
     def find_path(self, start, end, previous_path = []):
@@ -154,7 +126,7 @@ class Graph:
         return set(self._graph.keys())
 
     def topological_sort(self):
-        # TODO: This can be done more efficiently (currently V²+E, can be done in V+E, see wikipedia)
+        # TODO: This can be done more efficiently (currently V^2+E, can be done in V+E, see wikipedia)
         reverse_circle_graph = {}
         for circle in self.find_circles():
             reverse_circle_graph[circle] = set()

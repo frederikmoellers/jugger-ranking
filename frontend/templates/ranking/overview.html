@@ -1,0 +1,99 @@
+{# vim: set filetype=htmldjango: #}
+{% extends "site-base.html" %}
+{% block header %}
+<style type="text/css">
+    #id_score_1,#id_score_2 { width: 3em; }
+    #id_score_1 { text-align: right; }
+</style>
+{% endblock %}
+{% block content %}
+    <p align="right">
+        <a href="/logout">Logout</a>
+    </p>
+    <table border="1 px" cellspacing="0">
+        <tr>
+            <th>Place</th>
+            <th>Team</th>
+            <th>Actions</th>
+        </tr>
+        {% for rank in ranked_teams %}
+            <tr>
+                <td align="right">{{ rank.place }}.</td>
+                <td>{{ rank.team.name }}</td>
+                <td>
+                    <a href="removeteam?id={{ rank.team.id|urlencode }}">Remove</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="100%">No teams yet.</td>
+            </tr>
+        {% endfor %}
+        <tr><td colspan="100%"></td></tr>
+        <tr>
+            <form method="POST" action="newteam">
+                <td>
+                </td>
+                <td>
+                    <input type="text" width="100%" name="name">
+                </td>
+                <td>
+                    <input type="submit" value="New Team">
+                    {% csrf_token %}
+                </td>
+            </form>
+        </tr>
+    </table>
+    <a href="fcfjr/recalculate">Recalculate (FCFJR)</a>
+    <br><br><br>
+    <table border="1 px" cellspacing="0">
+        <tr>
+            <th>Team 1</th>
+            <th>Score</th>
+            <td>:</td>
+            <th>Score</th>
+            <th>Team 2</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <form method="POST" action="newgame">
+                <td>
+                    {{ game_form.team_1 }}
+                </td>
+                <td align="right">
+                    {{ game_form.score_1 }}
+                </td>
+                <td>
+                    :
+                </td>
+                <td>
+                    {{ game_form.score_2 }}
+                </td>
+                <td>
+                    {{ game_form.team_2 }}
+                </td>
+                <td>
+                    <input type="submit" value="New Game">
+                    {% csrf_token %}
+                </td>
+            </form>
+        </tr>
+        <tr><td colspan="100%"></td></tr>
+        {% for game in games %}
+            <tr>
+                <td bgcolor="#{% if game.winner == game.team_1 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.team_1.name }}</td>
+                <td align="right" bgcolor="#{% if game.winner == game.team_1 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.score_1 }}</td>
+                <td>:</td>
+                <td bgcolor="#{% if game.winner == game.team_2 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.score_2 }}</td>
+                <td bgcolor="#{% if game.winner == game.team_2 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.team_2.name }}</td>
+                <td>
+                    <a href="removegame?id={{ game.id }}">Delete</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="100%">No games yet.</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

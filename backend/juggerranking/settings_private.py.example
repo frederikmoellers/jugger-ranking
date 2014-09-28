@@ -1,0 +1,22 @@
+# vim:filetype=python
+
+DEBUG = True
+
+ADMINS = (
+    # ('Your Name', 'your_email@example.com'),
+    ('Your Name', 'your_email@example.org'),
+)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '/path/to/jugger-ranking/run/db.sqlite3',                      # Or path to database file if using sqlite3.
+        'USER': '',                      # Not used with sqlite3.
+        'PASSWORD': '',                  # Not used with sqlite3.
+        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+    }
+}
+
+# Make this unique, and don't share it with anybody.
+SECRET_KEY = 'xh*a|V[5sicef=)@{@U+~K\'5fJa{}W"\'P-5.5NnJe@$A&|_FRY'
