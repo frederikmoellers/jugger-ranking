@@ -10,6 +10,6 @@ The application is implemented on top of the [Django Web Framework](https://www.
 How to install/test
 -------------------
 
-First of all, You will need to create a private settings file named `backend/juggerranking/settings\_private.py`. An example can be found in `backend/juggerranking/settings\_private.py.example`.
+First of all, You will need to create a private settings file named `backend/juggerranking/settings_private.py`. An example can be found in `backend/juggerranking/settings_private.py.example`.
 Then You can create/sync the database using `backend/manage.py syncdb`.
 Finally, You can either run Django's built-in webserver by calling `backend/manage.py runserver` or configure Your favorite web server for Django.
