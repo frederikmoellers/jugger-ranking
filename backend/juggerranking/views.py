@@ -1,6 +1,9 @@
 import django.contrib.auth
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+import logging
+
+logger = logging.getLogger(__name__)
 
 def home(request):
     """
@@ -23,6 +26,7 @@ def login(request):
         django.contrib.auth.login(request, user)
         return HttpResponseRedirect("/ranking/overview")
     else:
+        logger.info("Authentication failed for user %s from client %s" % (username, request.META['REMOTE_ADDR']))
         return HttpResponseRedirect("/")
 
 def logout(request):
