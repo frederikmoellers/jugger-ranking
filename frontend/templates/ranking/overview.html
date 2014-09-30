@@ -2,9 +2,37 @@
 {% extends "site-base.html" %}
 {% block header %}
 <style type="text/css">
+    .alignright { text-align: right; }
+    .colon { text-align: center; }
+    .loser { background-color: #FFAAAA; }
+    .teamname { color: #000000; text-decoration: none;}
+    .winner { background-color: #AAFFAA; }
     #id_score_1,#id_score_2 { width: 3em; }
     #id_score_1 { text-align: right; }
 </style>
+<script src="/static/jquery.color-2.1.2.min.js"></script>
+<script>
+    var team_selected = 0;
+    function markTeam(id)
+    {
+        $('.markteam').css('font-weight', 'normal');
+        $('.markteam').clearQueue();
+        $('.markteam').stop();
+        $('.markteam').css('background-color', '');
+        if(team_selected !== id)
+        {
+            $('.markteam.team' + id).css('font-weight', 'bold');
+            $('.markteam.team' + id).animate({backgroundColor : "#FFAA77"}, 100);
+            $('.markteam.team' + id).animate({backgroundColor : "#FFFFAA"});
+            {#$('.markteam.team' + id).css('background-color', 'yellow');#}
+            team_selected = id;
+        }
+        else
+        {
+            team_selected = 0;
+        }
+    }
+</script>
 {% endblock %}
 {% block content %}
     <p align="right">
@@ -18,8 +46,9 @@
         </tr>
         {% for rank in ranked_teams %}
             <tr>
-                <td align="right">{{ rank.place }}.</td>
-                <td>{{ rank.team.name }}</td>
+                <td class="alignright markteam team{{ rank.team.id }}">{{ rank.place }}.</td>
+                <td class="markteam team{{ rank.team.id }}">
+                    <a class="teamname" href="javascript: markTeam({{ rank.team.id }});">{{ rank.team.name }}</a></td>
                 <td>
                     <a href="removeteam?id={{ rank.team.id|urlencode }}">Remove</a>
                 </td>
@@ -27,6 +56,19 @@
         {% empty %}
             <tr>
                 <td colspan="100%">No teams yet.</td>
+            </tr>
+        {% endfor %}
+        {% for team in unranked_teams %}
+            <tr class="unranked">
+                <td></td>
+                <td>
+                    <span class="teamname">
+                        {{ team.name }}
+                    </span>
+                </td>
+                <td>
+                    <a href="removeteam?id={{ team.id|urlencode }}">Remove</a>
+                </td>
             </tr>
         {% endfor %}
         <tr><td colspan="100%"></td></tr>
@@ -45,12 +87,13 @@
         </tr>
     </table>
     <a href="fcfjr/recalculate">Recalculate (FCFJR)</a>
+    <a href="javascript: $('.unranked').fadeToggle();">Show/Hide unranked teams</a>
     <br><br><br>
     <table border="1 px" cellspacing="0">
         <tr>
             <th>Team 1</th>
             <th>Score</th>
-            <td>:</td>
+            <td class="colon">:</td>
             <th>Score</th>
             <th>Team 2</th>
             <th>Actions</th>
@@ -60,10 +103,10 @@
                 <td>
                     {{ game_form.team_1 }}
                 </td>
-                <td align="right">
+                <td class="alignright">
                     {{ game_form.score_1 }}
                 </td>
-                <td>
+                <td class="colon">
                     :
                 </td>
                 <td>
@@ -81,11 +124,15 @@
         <tr><td colspan="100%"></td></tr>
         {% for game in games %}
             <tr>
-                <td bgcolor="#{% if game.winner == game.team_1 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.team_1.name }}</td>
-                <td align="right" bgcolor="#{% if game.winner == game.team_1 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.score_1 }}</td>
-                <td>:</td>
-                <td bgcolor="#{% if game.winner == game.team_2 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.score_2 }}</td>
-                <td bgcolor="#{% if game.winner == game.team_2 %}AAFFAA{% else %}FFAAAA{% endif %}">{{ game.team_2.name }}</td>
+                <td class="markteam team{{ game.team_1.id }} {% if game.winner == game.team_1 %}winner{% else %}loser{% endif %}">
+                    <a class="teamname" href="javascript: markTeam({{ game.team_1.id }});">{{ game.team_1.name }}</a>
+                </td>
+                <td class="alignright markteam team{{ game.team_1.id}} {% if game.winner == game.team_1 %}winner{% else %}loser{% endif %}">{{ game.score_1 }}</td>
+                <td class="colon">:</td>
+                <td class="markteam team{{ game.team_2.id }} {% if game.winner == game.team_2 %}winner{% else %}loser{% endif %}">{{ game.score_2 }}</td>
+                <td class="markteam team{{ game.team_2.id }} {% if game.winner == game.team_2 %}winner{% else %}loser{% endif %}">
+                    <a class="teamname" href="javascript: markTeam({{ game.team_2.id }});">{{ game.team_2.name }}</a>
+                </td>
                 <td>
                     <a href="removegame?id={{ game.id }}">Delete</a>
                 </td>

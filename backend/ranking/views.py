@@ -25,11 +25,11 @@ def new_team(request):
     return HttpResponseRedirect("overview")
 
 @login_required
-def ranking(request):
+def overview(request):
     ranked_teams = RankedTeam.objects.filter(team__user = request.user).order_by('place')
     games = Game.objects.filter(team_1__user = request.user, team_2__user = request.user).order_by('-id')
-    all_teams = request.user.teams.order_by('name')
-    return render(request, "ranking/overview.html", {"all_teams" : all_teams, "games" : games, "ranked_teams" : ranked_teams, "game_form" : GameForm(request.user)})
+    unranked_teams = request.user.teams.order_by('name').filter(ranking = None)
+    return render(request, "ranking/overview.html", {"games" : games, "ranked_teams" : ranked_teams, "game_form" : GameForm(request.user), "unranked_teams" : unranked_teams})
 
 @login_required
 def remove_game(request):
