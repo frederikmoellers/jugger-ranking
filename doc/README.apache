@@ -1,0 +1,9 @@
+How to install jugger-ranking on an apache web server:
+
+1. Install the WSGI mod. In Debian, this is the package libapache2-mod-wsgi.
+2. Create an apache site for jugger-ranking. An example file can be found in
+   this directory.
+3. Create a private settings file backend/juggerranking/settings_private.py, an
+   example can be found in the same directory.
+4. Run 'backend/manage.py syncdb' and 'backend/manage.py collectstatic'
+5. That's it. The website should work now.

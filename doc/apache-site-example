@@ -1,0 +1,27 @@
+# vim: filetype=apache
+<VirtualHost *:80>
+    ServerName your-server.your-domain.org
+
+    WSGIScriptAlias / /srv/jugger-ranking/backend/juggerranking/wsgi.py
+    WSGIDaemonProcess jugger-ranking python-path=/srv/jugger-ranking/backend/
+    WSGIProcessGroup jugger-ranking
+
+    Alias /static/ /srv/jugger-ranking/run/static/
+
+    <Directory /srv/jugger-ranking/run/static/>
+        Order deny,allow
+        allow from all
+    </Directory>
+
+    <Directory /srv/jugger-ranking/backend/juggerranking>
+        <Files wsgi.py>
+            Order deny,allow
+            Allow from all
+        </Files>
+    </Directory>
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
