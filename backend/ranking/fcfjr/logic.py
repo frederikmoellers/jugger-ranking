@@ -63,11 +63,13 @@ def recalculate(user):
                 # teams that everyone on this place played against
                 relevant_teams = team_graph.nodes()
                 for circ_jugg_diff, name, team in same_place_set:
+                    opponents = set()
                     for game in team.games():
                         if game.team_1 == team:
-                            relevant_teams.add(game.team_2)
+                            opponents.add(game.team_2)
                         else:
-                            relevant_teams.add(game.team_1)
+                            opponents.add(game.team_1)
+                    relevant_teams &= opponents
                 # jugg differences against relevant teams
                 rel_jugg_diffs = set()
                 for team_tuple in same_place_set:
