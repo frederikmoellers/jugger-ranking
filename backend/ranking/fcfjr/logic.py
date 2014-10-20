@@ -1,6 +1,15 @@
+from django.core.files import File
 from graph import Graph
 from juggerranking.models import Game, Team
-from ranking.models import RankedTeam
+from pygraphviz import AGraph
+from ranking.models import RankedTeam, RankingPicture
+import tempfile
+
+def asciiname(team):
+    """
+    Convert a team name to ascii
+    """
+    return team.name.encode('ascii', 'ignore')
 
 """
 Fred's completely fair Jugger ranking.
@@ -29,19 +38,39 @@ Teams that then are on the same place stay on the same place.
 def recalculate(user):
     # remove old ranking
     RankedTeam.objects.filter(team__user = user).delete()
+    for pic in RankingPicture.objects.all():
+        pic.image.delete()
+        pic.delete()
 
     team_graph = Graph()
+    gvfull = AGraph(directed = True)
     for team in user.teams.all():
+        gvfull.add_node(asciiname(team), label = team.name)
         team_graph.add_node(team)
     for game in Game.objects.filter(team_1__user = user, team_2__user = user):
         team_graph.add_edge(game.winner(), game.loser(), game.jugg_diff())
+    for source, dest, weight in team_graph.edges():
+        gvfull.add_edge(asciiname(source), asciiname(dest), label = str(weight))
+    with tempfile.NamedTemporaryFile(suffix = ".png") as tmp:
+        gvfull.draw(tmp, "png", "dot")
+        pic = RankingPicture(user = user, image = File(tmp), title = "Full Team Graph")
+        pic.save()
 
     current_place = 1
+    gvcircles = AGraph(directed = True)
+    gvtiebreaker = AGraph(directed = True)
     for place in team_graph.topological_sort():
         place_list = []
         relevant_teams = set()
         for circle in place:
             relevant_teams |= circle
+            if len(circle) == 1:
+                continue
+            for team in circle:
+                gvcircles.add_node(asciiname(team), label = team.name)
+            for source, dest, weight in team_graph.edges():
+                if source in circle and dest in circle:
+                    gvcircles.add_edge(asciiname(source), asciiname(dest), label = str(weight))
         place = [[(team.normalized_jugg_diff(relevant_teams), team.name, team) for team in circle] for circle in place]
         for circle in place:
             circle.sort(reverse = True)
@@ -70,6 +99,22 @@ def recalculate(user):
                         else:
                             opponents.add(game.team_1)
                     relevant_teams &= opponents
+                if len(relevant_teams) > 0:
+                    for team in relevant_teams:
+                        gvtiebreaker.add_node("b-" + asciiname(team), label = team.name)
+                    for void, void, team in same_place_set:
+                        gvtiebreaker.add_node("a-" + asciiname(team), label = team.name)
+                        for game in team.games():
+                            if game.team_1 == team and game.team_2 in relevant_teams:
+                                if game.winner() == team:
+                                    gvtiebreaker.add_edge("a-" + asciiname(team), "b-" + asciiname(game.team_2), label = game.jugg_diff())
+                                else:
+                                    gvtiebreaker.add_edge("b-" + asciiname(game.team_2), "a-" + asciiname(team), label = game.jugg_diff())
+                            elif game.team_2 == team and game.team_1 in relevant_teams:
+                                if game.winner() == team:
+                                    gvtiebreaker.add_edge("a-" + asciiname(team), "b-" + asciiname(game.team_1), label = game.jugg_diff())
+                                else:
+                                    gvtiebreaker.add_edge("b-" + asciiname(game.team_1), "a-" + asciiname(team), label = game.jugg_diff())
                 # jugg differences against relevant teams
                 rel_jugg_diffs = set()
                 for team_tuple in same_place_set:
@@ -99,3 +144,11 @@ def recalculate(user):
                 circ_jugg_diff, name, team = same_place_set.pop()
                 RankedTeam.objects.create(place = current_place, team = team)
                 current_place += 1
+    with tempfile.NamedTemporaryFile(suffix = ".png") as tmp:
+        gvcircles.draw(tmp, "png", "dot")
+        pic = RankingPicture(user = user, image = File(tmp), title = "Circles")
+        pic.save()
+    with tempfile.NamedTemporaryFile(suffix = ".png") as tmp:
+        gvtiebreaker.draw(tmp, "png", "dot")
+        pic = RankingPicture(user = user, image = File(tmp), title = "Tie Breaker")
+        pic.save()

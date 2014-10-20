@@ -71,6 +71,16 @@ class Graph:
             self._graph[node] = {}
             self._graph_reverse[node] = {}
 
+    def edges(self):
+        """
+        Returns a set of edges. Edges are 3-tuples (source, target, weight).
+        """
+        e = set()
+        for source in self._graph:
+            for target in self._graph[source]:
+                e.add((source, target, self._graph[source][target]))
+        return e
+
     def find_circles(self):
         circles = set()
         index = {}

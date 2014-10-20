@@ -10,7 +10,9 @@
     #id_score_1,#id_score_2 { width: 3em; }
     #id_score_1 { text-align: right; }
 </style>
+<link rel="stylesheet" type="text/css" href="/static/colorbox.css">
 <script src="/static/jquery.color-2.1.2.min.js"></script>
+<script src="/static/jquery.colorbox-min.js"></script>
 <script>
     var team_selected = 0;
     function markTeam(id)
@@ -38,56 +40,81 @@
     <p align="right">
         <a href="/logout">Logout</a>
     </p>
-    <table border="1 px" cellspacing="0">
+    <table border="0">
         <tr>
-            <th>Place</th>
-            <th>Team</th>
-            <th>Actions</th>
-        </tr>
-        {% for rank in ranked_teams %}
-            <tr>
-                <td class="alignright markteam team{{ rank.team.id }}">{{ rank.place }}.</td>
-                <td class="markteam team{{ rank.team.id }}">
-                    <a class="teamname" href="javascript: markTeam({{ rank.team.id }});">{{ rank.team.name }}</a></td>
-                <td>
-                    <a href="removeteam?id={{ rank.team.id|urlencode }}">Remove</a>
-                </td>
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="100%">No teams yet.</td>
-            </tr>
-        {% endfor %}
-        {% for team in unranked_teams %}
-            <tr class="unranked">
-                <td></td>
-                <td>
-                    <span class="teamname">
-                        {{ team.name }}
-                    </span>
-                </td>
-                <td>
-                    <a href="removeteam?id={{ team.id|urlencode }}">Remove</a>
-                </td>
-            </tr>
-        {% endfor %}
-        <tr><td colspan="100%"></td></tr>
-        <tr>
-            <form method="POST" action="newteam">
-                <td>
-                </td>
-                <td>
-                    <input type="text" width="100%" name="name">
-                </td>
-                <td>
-                    <input type="submit" value="New Team">
-                    {% csrf_token %}
-                </td>
-            </form>
+            <td>
+                <table border="1 px" cellspacing="0">
+                    <tr>
+                        <th>Place</th>
+                        <th>Team</th>
+                        <th>Actions</th>
+                    </tr>
+                    {% for rank in ranked_teams %}
+                        <tr>
+                            <td class="alignright markteam team{{ rank.team.id }}">{{ rank.place }}.</td>
+                            <td class="markteam team{{ rank.team.id }}">
+                                <a class="teamname" href="javascript: markTeam({{ rank.team.id }});">{{ rank.team.name }}</a></td>
+                            <td>
+                                <a href="removeteam?id={{ rank.team.id|urlencode }}">Remove</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="100%">No teams yet.</td>
+                        </tr>
+                    {% endfor %}
+                    {% for team in unranked_teams %}
+                        <tr class="unranked">
+                            <td></td>
+                            <td>
+                                <span class="teamname">
+                                    {{ team.name }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="removeteam?id={{ team.id|urlencode }}">Remove</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <tr><td colspan="100%"></td></tr>
+                    <tr>
+                        <form method="POST" action="newteam">
+                            <td>
+                            </td>
+                            <td>
+                                <input type="text" width="100%" name="name">
+                            </td>
+                            <td>
+                                <input type="submit" value="New Team">
+                                {% csrf_token %}
+                            </td>
+                        </form>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <table border="0">
+                    <tr>
+                        {% for pic in pictures %}
+                            <th>{{ pic.title }}</th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        {% for pic in pictures %}
+                            <td>
+                                <a class="gallery" href="{{ pic.image.url }}" title="{{ pic.title }}"><img src="{{ pic.image.url }}" width="150px"></a>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                </table>
+                <script>
+                    $('a.gallery').colorbox();
+                </script>
+            </td>
         </tr>
     </table>
     <a href="fcfjr/recalculate">Recalculate (FCFJR)</a>
-    <a href="javascript: $('.unranked').fadeToggle();">Show/Hide unranked teams</a>
+    <a href="javascript: $('tr.unranked').fadeToggle();">Show/Hide unranked teams</a>
     <br><br><br>
     <table border="1 px" cellspacing="0">
         <tr>
@@ -143,4 +170,7 @@
             </tr>
         {% endfor %}
     </table>
+    <br>
+    <br>
+    <br>
 {% endblock %}

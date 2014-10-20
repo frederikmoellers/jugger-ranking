@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from juggerranking.forms import GameForm
 from juggerranking.models import Game, Team
-from models import RankedTeam
+from models import RankedTeam, RankingPicture
 
 @login_required
 def new_game(request):
@@ -29,7 +29,8 @@ def overview(request):
     ranked_teams = RankedTeam.objects.filter(team__user = request.user).order_by('place')
     games = Game.objects.filter(team_1__user = request.user, team_2__user = request.user).order_by('-id')
     unranked_teams = request.user.teams.order_by('name').filter(ranking = None)
-    return render(request, "ranking/overview.html", {"games" : games, "ranked_teams" : ranked_teams, "game_form" : GameForm(request.user), "unranked_teams" : unranked_teams})
+    ranking_pictures = RankingPicture.objects.filter(user = request.user)
+    return render(request, "ranking/overview.html", {"game_form" : GameForm(request.user), "games" : games, "pictures" : ranking_pictures, "ranked_teams" : ranked_teams, "unranked_teams" : unranked_teams})
 
 @login_required
 def remove_game(request):

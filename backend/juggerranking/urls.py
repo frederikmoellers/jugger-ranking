@@ -18,3 +18,10 @@ urlpatterns = patterns('',
 
     url(r'^ranking/', include('ranking.urls')),
 )
+
+from django.conf import settings
+## debug stuff to serve static media
+if settings.DEBUG:
+    urlpatterns += patterns('',
+        url(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+   )

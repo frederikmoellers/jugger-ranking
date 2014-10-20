@@ -10,3 +10,8 @@ class UserRankingProperties(models.Model):
     user = models.ForeignKey(User, primary_key = True, related_name = "ranking_preferences")
     method = models.CharField(max_length = 100, help_text = "Ranking Method")
     hot = models.BooleanField(default = False, editable = False, help_text = "Ranking cache valid?")
+
+class RankingPicture(models.Model):
+    user = models.ForeignKey(User, related_name = "ranking_pictures")
+    image = models.ImageField(upload_to = "ranking_pictures")
+    title = models.CharField(max_length = 100, help_text = "Image Title")
