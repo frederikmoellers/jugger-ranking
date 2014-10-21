@@ -11,6 +11,15 @@ def asciiname(team):
     """
     return team.name.encode('ascii', 'ignore')
 
+
+colors = ['#FF0000', '#00AA00', '#0000FF', '#AAAA00', '#00AAAA', '#FF8800']
+
+def getcolor(index):
+    """
+    Returns a new color.
+    """
+    return (index + 1) % len(colors), colors[index]
+
 """
 Fred's completely fair Jugger ranking.
 From the teams and games, a graph is built. For each team, there's a
@@ -41,6 +50,7 @@ def recalculate(user):
     for pic in RankingPicture.objects.all():
         pic.image.delete()
         pic.delete()
+    color_index = 0
 
     team_graph = Graph()
     gvfull = AGraph(directed = True)
@@ -51,10 +61,6 @@ def recalculate(user):
         team_graph.add_edge(game.winner(), game.loser(), game.jugg_diff())
     for source, dest, weight in team_graph.edges():
         gvfull.add_edge(asciiname(source), asciiname(dest), label = str(weight))
-    with tempfile.NamedTemporaryFile(suffix = ".png") as tmp:
-        gvfull.draw(tmp, "png", "dot")
-        pic = RankingPicture(user = user, image = File(tmp), title = "Full Team Graph")
-        pic.save()
 
     current_place = 1
     gvcircles = AGraph(directed = True)
@@ -66,11 +72,16 @@ def recalculate(user):
             relevant_teams |= circle
             if len(circle) == 1:
                 continue
+            color_index, current_color = getcolor(color_index)
             for team in circle:
-                gvcircles.add_node(asciiname(team), label = team.name)
+                gvcircles.add_node(asciiname(team), label = team.name, color = current_color, fontcolor = current_color)
+                gvfull.get_node(asciiname(team)).attr['color'] = current_color
+                gvfull.get_node(asciiname(team)).attr['fontcolor'] = current_color
             for source, dest, weight in team_graph.edges():
                 if source in circle and dest in circle:
-                    gvcircles.add_edge(asciiname(source), asciiname(dest), label = str(weight))
+                    gvcircles.add_edge(asciiname(source), asciiname(dest), label = str(weight), color = current_color, fontcolor = current_color)
+                    gvfull.get_edge(asciiname(source), asciiname(dest)).attr['color'] = current_color
+                    gvfull.get_edge(asciiname(source), asciiname(dest)).attr['fontcolor'] = current_color
         place = [[(team.normalized_jugg_diff(relevant_teams), team.name, team) for team in circle] for circle in place]
         for circle in place:
             circle.sort(reverse = True)
@@ -100,21 +111,23 @@ def recalculate(user):
                             opponents.add(game.team_1)
                     relevant_teams &= opponents
                 if len(relevant_teams) > 0:
+                    color_index, current_color_a = getcolor(color_index)
+                    color_index, current_color_b = getcolor(color_index)
                     for team in relevant_teams:
-                        gvtiebreaker.add_node("b-" + asciiname(team), label = team.name)
+                        gvtiebreaker.add_node("b-" + asciiname(team), label = team.name, color = current_color_b, fontcolor = current_color_b)
                     for void, void, team in same_place_set:
-                        gvtiebreaker.add_node("a-" + asciiname(team), label = team.name)
+                        gvtiebreaker.add_node("a-" + asciiname(team), label = team.name, color = current_color_a, fontcolor = current_color_a)
                         for game in team.games():
                             if game.team_1 == team and game.team_2 in relevant_teams:
                                 if game.winner() == team:
-                                    gvtiebreaker.add_edge("a-" + asciiname(team), "b-" + asciiname(game.team_2), label = game.jugg_diff())
+                                    gvtiebreaker.add_edge("a-" + asciiname(team), "b-" + asciiname(game.team_2), label = game.jugg_diff(), color = current_color_a, fontcolor = current_color_a)
                                 else:
-                                    gvtiebreaker.add_edge("b-" + asciiname(game.team_2), "a-" + asciiname(team), label = game.jugg_diff())
+                                    gvtiebreaker.add_edge("b-" + asciiname(game.team_2), "a-" + asciiname(team), label = game.jugg_diff(), color = current_color_b, fontcolor = current_color_b)
                             elif game.team_2 == team and game.team_1 in relevant_teams:
                                 if game.winner() == team:
-                                    gvtiebreaker.add_edge("a-" + asciiname(team), "b-" + asciiname(game.team_1), label = game.jugg_diff())
+                                    gvtiebreaker.add_edge("a-" + asciiname(team), "b-" + asciiname(game.team_1), label = game.jugg_diff(), color = current_color_a, fontcolor = current_color_a)
                                 else:
-                                    gvtiebreaker.add_edge("b-" + asciiname(game.team_1), "a-" + asciiname(team), label = game.jugg_diff())
+                                    gvtiebreaker.add_edge("b-" + asciiname(game.team_1), "a-" + asciiname(team), label = game.jugg_diff(), color = current_color_b, fontcolor = current_color_b)
                 # jugg differences against relevant teams
                 rel_jugg_diffs = set()
                 for team_tuple in same_place_set:
@@ -144,6 +157,10 @@ def recalculate(user):
                 circ_jugg_diff, name, team = same_place_set.pop()
                 RankedTeam.objects.create(place = current_place, team = team)
                 current_place += 1
+    with tempfile.NamedTemporaryFile(suffix = ".png") as tmp:
+        gvfull.draw(tmp, "png", "dot")
+        pic = RankingPicture(user = user, image = File(tmp), title = "Full Team Graph")
+        pic.save()
     with tempfile.NamedTemporaryFile(suffix = ".png") as tmp:
         gvcircles.draw(tmp, "png", "dot")
         pic = RankingPicture(user = user, image = File(tmp), title = "Circles")
