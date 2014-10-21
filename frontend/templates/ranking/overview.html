@@ -26,7 +26,6 @@
             $('.markteam.team' + id).css('font-weight', 'bold');
             $('.markteam.team' + id).animate({backgroundColor : "#FFAA77"}, 100);
             $('.markteam.team' + id).animate({backgroundColor : "#FFFFAA"});
-            {#$('.markteam.team' + id).css('background-color', 'yellow');#}
             team_selected = id;
         }
         else
@@ -108,7 +107,7 @@
                     </tr>
                 </table>
                 <script>
-                    $('a.gallery').colorbox();
+                    $('a.gallery').colorbox({rel: 'gallery'});
                 </script>
             </td>
         </tr>
