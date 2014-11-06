@@ -114,20 +114,6 @@ class Graph:
                 circles, index, lowlink, current_index, stack = strongconnect(circles, index, lowlink, current_index, stack, node)
         return circles
 
-    def find_path(self, start, end, previous_path = []):
-        path = previous_path + [start]
-        if start == end:
-            return path
-        if start not in self._graph:
-            return None
-        shortest = None
-        for node in self._graph[start]:
-            if node not in path:
-                newpath = self.find_path(node, end, path)
-                if newpath and (not shortest or len(newpath) < len(shortest)):
-                    shortest = newpath
-        return shortest
-
     def nodes(self):
         """
         Returns:
